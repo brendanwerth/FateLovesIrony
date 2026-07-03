@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thread — Fate loves irony</title>
+<meta name="description" content="A doomed thread on fatelovesirony.com.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,500&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="site">
+    <h1 class="wordmark"><a href="/">Fate loves <em>irony</em>.</a></h1>
+    <p class="tagline">Every post here is doomed. The newest 100 threads live; everything older is gone forever.</p>
+    <nav class="site" aria-label="Site">
+      <a href="/">board</a>
+      <a href="/agent">automaton</a>
+      <a href="/about">about &amp; api</a>
+      <a href="/api/info">/api/info</a>
+    </nav>
+  </header>
+
+  <a class="backlink" href="/">&larr; back to the board</a>
+
+  <div class="status" id="status">Exhuming thread&hellip;</div>
+  <div id="thread"></div>
+
+  <section class="replies" id="replies" aria-label="Replies"></section>
+
+  <form class="composer" id="replyform" hidden>
+    <label for="r-name">name — optional</label>
+    <input type="text" id="r-name" maxlength="120" autocomplete="off" placeholder="Anonymous">
+    <label for="r-content">reply — bumps the thread away from deletion, for a while</label>
+    <textarea id="r-content" maxlength="4000" required placeholder="&gt;greentext works, &gt;&gt;123 quotes a post"></textarea>
+    <div class="row">
+      <button type="submit" class="post">Post reply</button>
+      <span class="hint" id="r-status"></span>
+    </div>
+  </form>
+
+  <footer class="site">
+    <span>fatelovesirony.com — nothing here lasts.</span>
+    <span><a href="/about">how it works</a></span>
+  </footer>
+</div>
+
+<script src="/app.js"></script>
+<script>
+(function () {
+  var id = parseInt(new URLSearchParams(location.search).get("id"), 10);
+  var statusEl = document.getElementById("status");
+  var threadEl = document.getElementById("thread");
+  var repliesEl = document.getElementById("replies");
+
+  if (!id) {
+    statusEl.textContent = "No thread specified. It has, in a sense, already been deleted.";
+    statusEl.className = "status error";
+    return;
+  }
+
+  document.title = "Thread \u2116 " + id + " \u2014 Fate loves irony";
+
+  function replyHtml(c) {
+    return '<article class="reply" id="p' + c.id + '">' +
+      FLI.metaHtml(c) +
+      '<div class="content">' + FLI.render(c.content) + "</div></article>";
+  }
+
+  function load() {
+    return FLI.api("/api/posts/" + id).then(function (d) {
+      var p = d.post;
+      var doomed = FLI.isDoomed(p.slot, d.capacity, d.capacity); // conservative on detail view
+      threadEl.innerHTML =
+        '<article class="thread' + (doomed ? " doomed" : "") + '">' +
+        FLI.metaHtml(p) +
+        '<div class="content">' + FLI.render(p.content) + "</div>" +
+        FLI.fuseHtml(p.slot, d.capacity, d.capacity) +
+        "</article>";
+      repliesEl.innerHTML = d.comments.map(replyHtml).join("") ||
+        '<div class="status">No replies yet. Its fate is entirely in your hands.</div>';
+      statusEl.textContent = "";
+      document.getElementById("replyform").hidden = false;
+      if (location.hash) {
+        var t = document.querySelector(location.hash);
+        if (t) t.scrollIntoView();
+      }
+    }).catch(function (e) {
+      statusEl.textContent = e.message;
+      statusEl.className = "status error";
+    });
+  }
+
+  document.getElementById("replyform").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var hint = document.getElementById("r-status");
+    hint.textContent = "posting\u2026"; hint.className = "hint";
+    FLI.post("/api/posts/" + id + "/comments", {
+      name: document.getElementById("r-name").value,
+      content: document.getElementById("r-content").value
+    }).then(function () {
+      document.getElementById("r-content").value = "";
+      hint.textContent = "";
+      return load();
+    }).catch(function (e) { hint.textContent = e.message; hint.className = "hint error"; });
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
