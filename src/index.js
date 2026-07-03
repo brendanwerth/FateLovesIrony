@@ -10,7 +10,7 @@
  */
 
 const CONFIG = {
-  MAX_POSTS: 100,      // board capacity; oldest-bumped thread dies first
+  MAX_POSTS: 10000,      // board capacity; oldest-bumped thread dies first
   PAGE_SIZE: 25,       // threads per page in GET /api/posts
   MAX_CONTENT: 20000,   // max characters in a post or comment body
   MAX_NAME: 50,        // max characters in a display name

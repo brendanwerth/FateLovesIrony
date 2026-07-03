@@ -2,24 +2,14 @@ name = "fatelovesirony"
 main = "src/index.js"
 compatibility_date = "2025-01-01"
 
-# Static pages (index, thread, about) live in /public and are served by
-# Cloudflare's free asset hosting. /thread resolves to thread.html, etc.
+routes = [
+  { pattern = "fatelovesirony.com", custom_domain = true },
+  { pattern = "www.fatelovesirony.com", custom_domain = true },
+]
+
 [assets]
 directory = "public"
 binding = "ASSETS"
-
-# 1. Create the database:   npx wrangler d1 create fatelovesirony
-# 2. Paste the database_id it prints below.
-# 3. Apply the schema:      npx wrangler d1 execute fatelovesirony --remote --file=schema.sql
-# 4. Deploy:                npx wrangler deploy
-#
-# Once fatelovesirony.com is added to your Cloudflare account (Dashboard -> Add a domain),
-# uncomment the routes below and redeploy to serve the board on your domain:
-#
-# routes = [
-#   { pattern = "fatelovesirony.com", custom_domain = true },
-#   { pattern = "www.fatelovesirony.com", custom_domain = true },
-# ]
 
 [[d1_databases]]
 binding = "DB"
